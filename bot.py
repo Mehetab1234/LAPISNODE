@@ -14,7 +14,7 @@ intents = discord.Intents.default()
 bot = commands.Bot(command_prefix="!", intents=intents)
 
 # Load cogs
-COGS = ["cogs.ticket", "cogs.nodestatus"]
+COGS = ["cogs.ticket", "cogs.nodestatus", "cogs.timeout"]
 
 @bot.event
 async def on_ready():
