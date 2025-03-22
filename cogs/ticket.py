@@ -41,7 +41,8 @@ class TicketView(discord.ui.View):
         await interaction.response.send_message(f"✅ Ticket created: {ticket_channel.mention}", ephemeral=True)
 
 class CloseTicketView(discord.ui.View):
-    """Button to close a ticket"""
+    """Support will be with you shortly.
+To close this press the close button"""
     def __init__(self):
         super().__init__(timeout=None)
 
