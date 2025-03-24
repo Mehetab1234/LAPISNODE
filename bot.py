@@ -14,8 +14,7 @@ intents = discord.Intents.default()
 bot = commands.Bot(command_prefix="!", intents=intents)
 
 # Load cogs
-COGS = ["cogs.ticket", "cogs.nodestatus", "cogs.timeout", "cogs.sky"]
-
+COGS = ["cogs.ticket", "cogs.nodestatus", "cogs.timeout", "cogs.sky", "cogs.basic"] 
 @bot.event
 async def on_ready():
     print(f"✅ Logged in as {bot.user}")
