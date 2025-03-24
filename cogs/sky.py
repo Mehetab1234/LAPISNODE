@@ -4,55 +4,50 @@ import discord
 from discord import app_commands
 from discord.ext import commands
 
-# Load API key and URL from environment variables
-API_URL = os.getenv("SKYPORT_API_URL")
-API_KEY = os.getenv("SKYPORT_API_KEY")
+# Load environment variables
+SKYPORT_API_URL = os.getenv("SKYPORT_API_URL")
+SKYPORT_API_KEY = os.getenv("SKYPORT_API_KEY")
 
 class Skyport(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
 
-    @app_commands.command(name="nodestatus", description="Check Skyport node status")
-    async def nodestatus(self, interaction: discord.Interaction):
-        if not API_URL or not API_KEY:
+    @app_commands.command(name="skyportnode", description="Check Skyport node status")
+    async def skyportnode(self, interaction: discord.Interaction):
+        if not SKYPORT_API_URL or not SKYPORT_API_KEY:
             await interaction.response.send_message("❌ API Key or Panel URL not configured!", ephemeral=True)
             return
-
+        
         headers = {
-            "Authorization": f"Bearer {API_KEY}",
-            "Content-Type": "application/json"
+            "Authorization": f"Bearer {SKYPORT_API_KEY}",
+            "Content-Type": "application/json",
         }
 
         try:
-            response = requests.get(f"{API_URL}/api/nodes", headers=headers)
-            response.raise_for_status()  # Raise error if status code is 4xx or 5xx
+            response = requests.get(f"{SKYPORT_API_URL}/admin/nodes", headers=headers)
 
-            data = response.json()
-            if not data:
-                await interaction.response.send_message("❌ Skyport API returned an empty response.", ephemeral=True)
-                return
+            if response.status_code == 200:
+                data = response.json()
+                if not data:
+                    await interaction.response.send_message("❌ Skyport API returned an empty response.", ephemeral=True)
+                    return
 
-            embed = discord.Embed(title="🌍 Skyport Node Status", color=discord.Color.blue())
+                embed = discord.Embed(title="Skyport Node Status", color=discord.Color.blue())
+                for node in data:
+                    embed.add_field(
+                        name=f"Node: {node['name']}",
+                        value=f"**Status:** {node['status']}\n"
+                              f"**CPU:** {node['cpu_usage']}%\n"
+                              f"**RAM:** {node['memory_usage']} MB",
+                        inline=False
+                    )
 
-            for node in data:
-                embed.add_field(
-                    name=f"🔹 Node: {node['name']}",
-                    value=(
-                        f"**ID:** {node['id']}\n"
-                        f"**Memory:** {node['memory']} MB\n"
-                        f"**CPU:** {node['cpu']}%\n"
-                        f"**Disk:** {node['disk']} GB\n"
-                        f"**Status:** ✅ Online" if node['status'] else "❌ Offline"
-                    ),
-                    inline=False
-                )
-
-            await interaction.response.send_message(embed=embed)
+                await interaction.response.send_message(embed=embed)
+            else:
+                await interaction.response.send_message(f"❌ Skyport API Error: {response.status_code}\n{response.text}", ephemeral=True)
 
         except requests.exceptions.RequestException as e:
-            await interaction.response.send_message(f"❌ API Error: {str(e)}", ephemeral=True)
-        except requests.exceptions.JSONDecodeError:
-            await interaction.response.send_message("❌ Skyport API response is not valid JSON.", ephemeral=True)
+            await interaction.response.send_message(f"❌ Unable to reach Skyport API: {str(e)}", ephemeral=True)
 
 async def setup(bot):
     await bot.add_cog(Skyport(bot))
