@@ -1,10 +1,12 @@
+import os
 import requests
 import discord
 from discord import app_commands
 from discord.ext import commands
 
-SKYPORT_API_URL = "https://pleasantly-dear-poodle.ngrok-free.app/api/"  # Update if needed
-API_KEY = "e9f670d0-c060-46a8-99ca-51f066cab8b6"  # Keep this secure!
+# Load environment variables
+SKYPORT_API_URL = os.getenv("SKYPORT_API_URL")
+SKYPORT_API_KEY = os.getenv("SKYPORT_API_KEY")
 
 class Skyport(commands.Cog):
     def __init__(self, bot):
@@ -12,8 +14,12 @@ class Skyport(commands.Cog):
 
     @app_commands.command(name="skyportnode", description="Check Skyport node status")
     async def skyportnode(self, interaction: discord.Interaction):
+        if not SKYPORT_API_URL or not SKYPORT_API_KEY:
+            await interaction.response.send_message("❌ API Key or Panel URL not configured!", ephemeral=True)
+            return
+        
         headers = {
-            "Authorization": f"Bearer {API_KEY}",
+            "Authorization": f"Bearer {SKYPORT_API_KEY}",
             "Content-Type": "application/json",
         }
 
@@ -41,7 +47,7 @@ class Skyport(commands.Cog):
                 await interaction.response.send_message(f"❌ Skyport API Error: {response.status_code}\n{response.text}", ephemeral=True)
 
         except requests.exceptions.RequestException as e:
-            await interaction.response.send_message(f"❌ Unable to reach Skyport API: {str(e)}", ephemeral=True)
+            await interaction.response.send_message(f"❌ NOT WORKING: {str(e)}", ephemeral=True)
 
 async def setup(bot):
     await bot.add_cog(Skyport(bot))
